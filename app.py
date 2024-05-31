@@ -27,9 +27,9 @@ async def thankyou(request: Request):
 DB_CONFIG = {
     'host': 'localhost',
     'port': 3306,
-    'user': 'wehelp',
-    'password': 'wehelp',
-    'database': 'tp_attractions',
+    'user': 'newuser',
+    'password': 'user_password',
+    'database': 'mydatabase',
     'charset': 'utf8'
 }
 
