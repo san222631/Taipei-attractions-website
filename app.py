@@ -171,14 +171,11 @@ def fetch_mrts():
         #cursor.execute("SET SESSION group_concat_max_len = 1000000;")
 
         query = """
-        SELECT u.*
-        FROM usefuldata u
-        JOIN (
-            SELECT MRT, COUNT(*) as mrt_count
-            FROM usefuldata
-            GROUP BY MRT
-        ) as mrt_counts ON u.MRT = mrt_counts.MRT
-        ORDER BY mrt_counts.mrt_count DESC, u.MRT ASC;
+        SELECT MRT, COUNT(*) AS mrt_count
+        FROM usefuldata
+	WHERE MRT IS NOT NULL
+        GROUP BY MRT
+        ORDER BY mrt_count DESC;
         """
         #print("This is ID query", attractionId) #找錯誤
         cursor.execute(query)
