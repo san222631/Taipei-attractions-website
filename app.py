@@ -1,6 +1,6 @@
 
 from fastapi import *
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from typing import Optional
 import mysql.connector
 from mysql.connector import Error
@@ -60,7 +60,12 @@ def fetch_data(page: int, keyword: Optional[str]):
         return results
     except Exception as e:
         print(f"Error fetching data: {e}")
-        return None  # Handle errors as needed
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": True,
+                "message":"伺服器內部錯誤"
+                })
     finally:
         if cursor is not None:
             cursor.close()
@@ -71,7 +76,7 @@ def fetch_data(page: int, keyword: Optional[str]):
 def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
     data = fetch_data(page, keyword)
     if not data:
-        raise HTTPException(status_code=404, detail="No attractions found.")
+        raise HTTPException(status_code=404, detail="No Data, No attractions found.")
     
     # Determine if there's a next page
     next_page = page + 1 if len(data) == 12 else None
@@ -130,9 +135,9 @@ def fetch_data_by_id(attractionId: int):
 def get_attraction_by_id(attractionId: int):
     attraction_details = fetch_data_by_id(attractionId)
     if not attraction_details:
-         raise HTTPException(
-            status_code=404,
-            detail={
+         return JSONResponse(
+            status_code=400,
+            content={
                 "error": True,
                 "message": "景點編號不正確"
             }
@@ -180,8 +185,14 @@ def fetch_mrts():
         result = cursor.fetchall()
         #print("找到的結果", result)
         return result
-    except mysql.connector.Error as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        print(f"Internal Server Error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": True,
+                "message":"伺服器內部錯誤"
+                })
     finally:
         if cursor:
             cursor.close()
@@ -194,7 +205,7 @@ def get_mrts():
     mrts = fetch_mrts()
     if not mrts:
         raise HTTPException(
-        status_code=404,
+        status_code=500,
         detail={
             "error": True,
             "message": "捷運列表不存在"
