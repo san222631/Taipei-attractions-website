@@ -28,10 +28,9 @@ async def thankyou(request: Request):
 
 DB_CONFIG = {
     'host': 'localhost',
-
-    'user': 'wehelp',
-    'password': 'wehelp',
-    'database': 'tp_attractions',
+    'user': 'newuser',
+    'password': 'user_password',
+    'database': 'mydatabase',
     'charset': 'utf8'
 }
 
@@ -171,9 +170,9 @@ def fetch_mrts():
     cursor = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
-        print("Connection object:", conn)
+        #print("Connection object:", conn)
         cursor = conn.cursor(dictionary=True)
-        print("Cursor object:", cursor)
+        #print("Cursor object:", cursor)
         #cursor.execute("SET SESSION group_concat_max_len = 1000000;")
 
         query = """
