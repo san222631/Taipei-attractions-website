@@ -1,12 +1,14 @@
 
 from fastapi import *
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from typing import Optional
 import mysql.connector
 from mysql.connector import Error
+from fastapi.staticfiles import StaticFiles
+
 
 app = FastAPI()
-
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Static Pages (Never Modify Code in this Block)
 @app.get("/", include_in_schema=False)
@@ -26,10 +28,10 @@ async def thankyou(request: Request):
 
 DB_CONFIG = {
     'host': 'localhost',
-    'port': 3306,
-    'user': 'newuser',
-    'password': 'user_password',
-    'database': 'mydatabase',
+
+    'user': 'wehelp',
+    'password': 'wehelp',
+    'database': 'tp_attractions',
     'charset': 'utf8'
 }
 
@@ -60,8 +62,13 @@ def fetch_data(page: int, keyword: Optional[str]):
         results = cursor.fetchall()
         return results
     except Exception as e:
-        print(f"Error fetching data: {e}")
-        return None  # Handle errors as needed
+        print(f"Internal Server Error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": True,
+                "message":"伺服器內部錯誤"
+                })  
     finally:
         if cursor is not None:
             cursor.close()
@@ -72,7 +79,7 @@ def fetch_data(page: int, keyword: Optional[str]):
 def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
     data = fetch_data(page, keyword)
     if not data:
-        raise HTTPException(status_code=404, detail="No attractions found.")
+        raise HTTPException(status_code=404, detail="No Data, No attractions found.")
     
     # Determine if there's a next page
     next_page = page + 1 if len(data) == 12 else None
@@ -94,6 +101,7 @@ def get_attractions(page: int = 0, keyword: Optional[str] = Query(None)):
         } for item in data]
     }
     return response
+
 
 #___________________________________________________________________________________________
 #for /api/attraction/{attractionId} 根據景點編號取得景點資料
@@ -131,9 +139,9 @@ def fetch_data_by_id(attractionId: int):
 def get_attraction_by_id(attractionId: int):
     attraction_details = fetch_data_by_id(attractionId)
     if not attraction_details:
-         raise HTTPException(
-            status_code=404,
-            detail={
+         return JSONResponse(
+            status_code=400,
+            content={
                 "error": True,
                 "message": "景點編號不正確"
             }
@@ -163,26 +171,32 @@ def fetch_mrts():
     cursor = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
+        print("Connection object:", conn)
         cursor = conn.cursor(dictionary=True)
+        print("Cursor object:", cursor)
         #cursor.execute("SET SESSION group_concat_max_len = 1000000;")
 
         query = """
-        SELECT u.*
-        FROM usefuldata u
-        JOIN (
-            SELECT MRT, COUNT(*) as mrt_count
-            FROM usefuldata
-            GROUP BY MRT
-        ) as mrt_counts ON u.MRT = mrt_counts.MRT
-        ORDER BY mrt_counts.mrt_count DESC, u.MRT ASC;
+        SELECT MRT, COUNT(*) AS mrt_count
+        FROM usefuldata
+        WHERE MRT IS NOT NULL
+        GROUP BY MRT
+        ORDER BY mrt_count DESC;
         """
         #print("This is ID query", attractionId) #找錯誤
         cursor.execute(query)
         result = cursor.fetchall()
-        #print("找到的結果", result)
+        print("找到的結果", result)
         return result
-    except mysql.connector.Error as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+    except Exception as e:
+        print(f"Internal Server Error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": True,
+                "message":"伺服器內部錯誤"
+                })
     finally:
         if cursor:
             cursor.close()
@@ -195,7 +209,7 @@ def get_mrts():
     mrts = fetch_mrts()
     if not mrts:
         raise HTTPException(
-        status_code=404,
+        status_code=500,
         detail={
             "error": True,
             "message": "捷運列表不存在"

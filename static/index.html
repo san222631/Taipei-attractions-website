@@ -4,8 +4,64 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Index</title>
+  <link rel="stylesheet" href="/static/index.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700&display=swap" rel="stylesheet">
+
 </head>
 <body>
+  <div id="all-container" class="wrapper">
+    <nav>
+      <div class="nav-container">
+        <ul class="menu">
+          <li class="menu-left">台北一日遊</li>
+          <div class="menu-right-container">
+            <li class="menu-right">預定行程</li>
+            <li class="menu-right">登入/註冊</li>
+          </div>
+        </ul>
+      </div>
+    </nav>
+
+
+    <header class="header">
+      <div class="header-content">
+        <div class="header-t1">
+        輕鬆享受台北一日悠閒
+        </div>
+        <div class="header-t2">
+        探索每個角落，體驗城市的深度旅遊行程
+        </div>
+        <div class="search-box">
+          <input type="text" id="search-input" name="search" placeholder="輸入景點名稱查詢">
+          <button type="submit" id="search-button"></button>
+        </div>
+      </div>
+    </header>
+
+    <!--Here add a scrollable horizontal list bar of MRT-->
+    <div class="mrt-list-container">
+        <button class="scroll-button left" id="scroll-left"></button>
+        <div class="mrt-list-wrapper">
+          <div class="mrt-list" id="mrt-list"></div>
+        </div>
+        <button class="scroll-button right" id="scroll-right"></button>
+    </div>
+
+
+    <div class="grid-container" id="grid-container">
+      <div class="grid-content" id="grid-content">
+      </div>
+    </div>   
+
+
+    <footer class="footer">
+      COPYRIGHT © 2021 台北一日遊
+    </footer>
+
+
+  </div>
+  <script type="application/javascript" src="/static/index.js"></script>
+
   
 </body>
 </html>

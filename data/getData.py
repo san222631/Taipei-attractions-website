@@ -76,3 +76,7 @@ def load_json_to_mysql():
 
 if __name__ == '__main__':
     load_json_to_mysql()
+
+
+
+
