@@ -4,8 +4,117 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Attraction</title>
+  <link rel="stylesheet" href="/static/attraction.css">
 </head>
 <body>
+  <!--最上面的Navigation-->
+  <nav>
+    <div class="nav-container">
+      <ul class="menu">
+        <li class="menu-left" id="go-index">台北一日遊</li>
+        <div class="menu-right-container">
+          <li class="menu-right">預定行程</li>
+          <li class="menu-right">登入/註冊</li>
+        </div>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="seperator"></div>
+
+
+
+  <div class="main-section" id="main-section">
+
+    <div class="grid-container" id="grid-container">
+
+      <!--左邊的grid-->
+      <div class="image-container">
+        <button class="scroll-button left" id="scroll-left"></button>
+        <div class="image-list-wrapper" id="image-list-wrapper">
+          <div class="image-list" id="image-list"></div>
+        </div>
+        <button class="scroll-button right" id="scroll-right"></button>
+        <!--下面的圈圈-->
+        <div class="allCircles" id="allCircles"></div>
+      </div>
+
+      <!--右邊的grid-->
+      <div class="profile" id="profile">
+        <div class="name" id="name"></div>
+        <div class="CAT_MRT" id="CAT_MRT"></div>
+        <div class="booking-form" id="booking-form">
+          <div class="title">訂購導覽行程</div>
+          <div class="content">以此景點為中心的一日行程，帶您探索城市角落故事</div>
+          <div class="reserve-box">
+            <!--選擇日期-->
+            <div class="date">
+              <label for="selected-date">
+                選擇日期:
+              </label>  
+              <input type="date" id="selected-date">
+            </div>
+            <!--選擇時間-->
+            <div class="time">
+              <label for="selected-time">
+              選擇時間:
+              </label>
+              <!--radio buttons通常在一個group裡面，有同樣的name屬性，有不同的value-->
+              <label class="time-option">
+                <input type="radio" name="time" value="morning" onchange="updateCost()"> 上半天
+              </label>
+              <label class="time-option">
+                <input type="radio" name="time" value="afternoon" onchange="updateCost()"> 下半天
+              </label>
+            </div>
+            <!--顯示費用-->
+            <div class="cost" id="cost">
+              <label for="selected-cost">
+              導覽費用: 
+              </label>
+              <label id="real-price">
+              新台幣 0元
+              </label>
+            </div>
+            <button type="reserve" id="reserve">開始預約行程</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="seperator-2"></div>
+
+  <div class="horizontal-center">
+    <div class="infors" id="infors">
+      <div class="content-2" id="description"></div>
+      <div class="group">
+        <div class="title-2">景點地址 :</div>
+        <div class="content-2" id="address"></div>
+      </div>
+      <div class="group">
+        <div class="title-2">交通方式 :</div>
+        <div class="content-2" id="transport"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    COPYRIGHT © 2021 台北一日遊
+  </footer>
+
+
+
   
+<!--檢查用的，最後要刪掉-->
+<div id="check"></div>
+
+
+
+<script type="application/javascript" src="/static/attraction.js"></script>
+
 </body>
 </html>

@@ -149,7 +149,8 @@ def get_attraction_by_id(attractionId: int):
     response = {
         "data": {
             "id": attraction_details['id'],
-            "name": attraction_details['CAT'],
+            "name": attraction_details['name'],
+            "category": attraction_details['CAT'],
             "description": attraction_details['description'],
             "address": attraction_details['address'],
             "transport": attraction_details['direction'],

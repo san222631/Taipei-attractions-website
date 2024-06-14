@@ -125,9 +125,16 @@ function searchAttractions(keyword) {
     fetchAttractions(currentPage, keyword);
 }
 
+//產生每個景點的<div><class>，包括圖片、名稱、捷運站、分類，
 function createAttractionCard(attraction) {
     const card = document.createElement('div');
     card.className = 'card';
+    //增加了每個景點獨特的id以及偵測有沒有被click
+    card.id = attraction.id;
+    card.addEventListener('click', function(){
+        //要記得用backticks``做string interpolation
+        window.location.href = `/attraction/${attraction.id}`;
+    });
 
     const image = document.createElement('img');
     image.src = attraction.images[0];
