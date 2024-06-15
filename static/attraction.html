@@ -60,11 +60,11 @@
               選擇時間:
               </label>
               <!--radio buttons通常在一個group裡面，有同樣的name屬性，有不同的value-->
-              <label class="time-option">
-                <input type="radio" name="time" value="morning" onchange="updateCost()"> 上半天
+              <label class="time-option" for="specifyColor">
+                <input type="radio" name="time" value="morning" onchange="updateCost()" id="specifyColor"> 上半天
               </label>
-              <label class="time-option">
-                <input type="radio" name="time" value="afternoon" onchange="updateCost()"> 下半天
+              <label class="time-option" for="specifyColor">
+                <input type="radio" name="time" value="afternoon" onchange="updateCost()" id="specifyColor"> 下半天
               </label>
             </div>
             <!--顯示費用-->

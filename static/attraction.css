@@ -229,9 +229,6 @@ body {
 }
 
 /*日期選擇*/
-.reserve-box {
-
-}
 .date {
 
     font-family: 'Noto Sans TC', sans-serif;
@@ -265,16 +262,28 @@ body {
     font-weight: 700;
     color: #666666;
     margin-bottom: 15px;
+
+    display: flex;
+    align-items: center;
 }
 .time label{
     margin-right: 10px;
 }
-.time .time-option {
+.time-option {
     font-family: 'Noto Sans TC', sans-serif;
     font-size: 16px;
     font-weight: 400;
     color: #666666;
+    display: flex;
 }
+/*讓預設顏色消失*/
+#specifyColor {
+    accent-color: #448899;
+    width: 22px;
+    height: 22px;
+    margin-right: 5px;
+}
+
 .cost {
     height: 22px;
     font-family: 'Noto Sans TC', sans-serif;
@@ -414,6 +423,9 @@ body {
         margin: 0 auto;
         margin-top: 20px;
     }
+    .seperator {
+        margin-bottom: 0;
+    }
 }
 
 
@@ -425,5 +437,9 @@ body {
     .date input[type="date"] {
         width: 100%;
     }
+    .seperator {
+        margin-bottom: 0;
+    }
 
 }
+
