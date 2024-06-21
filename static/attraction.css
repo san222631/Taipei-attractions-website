@@ -40,11 +40,43 @@ body {
     align-items: center;
 }
 .menu-right {
+    text-align: center;
     padding: 10px;
     font-family: 'Noto Sans TC', sans-serif;
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 100;
+    line-height: 13.3px;
     color: #666666;
+}
+.only-occupy-1space {
+    width: 92px;
+}
+.menu-right-login {
+    text-align: center;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 16px;
+    font-weight: 100;
+    line-height: 13.3px;
+    color: #666666;
+    padding: 10px;
+
+    display: block;
+    visibility: hidden;
+}
+.menu-right-logout {
+    text-align: center;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 16px;
+    font-weight: 100;
+    line-height: 13.3px;
+    color: #666666;
+    padding: 10px;  
+
+    display: none;
+    visibility: hidden;
+}
+.visible {
+    visibility: visible;
 }
 
 
@@ -121,7 +153,7 @@ body {
     background-position: center;
     background-size: 36px 36px;
     border: none;
-    z-index: 2;
+    z-index: 1;
 
     top: 50%;
     opacity: 75%;
@@ -222,7 +254,7 @@ body {
 
     font-family: 'Noto Sans TC', sans-serif;
     font-size: 16px;
-    font-weight: 400;
+    font-weight: 100;
     color: #666666;
     margin-top: 15px;
     margin-bottom: 15px;
@@ -443,3 +475,171 @@ body {
 
 }
 
+
+/*登入/註冊的彈出視窗*/
+/* Add this CSS for the 登入 modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 3;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+    padding-top: 60px;
+  }
+  
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    max-width: 340px;
+    max-height: auto;
+    border-radius: 3%;
+    overflow: hidden;
+}
+.decorator-bar {
+    max-width: 340px;
+    height: 10px;
+    background-color: #448899;
+}
+.content-wrapper {
+    padding: 15px;
+    height: auto;
+    position: relative;
+}
+.close-button {
+    width: 30px;
+    height: 30px;
+    background-image: url('close.png');
+    position: absolute;
+    right: 10px;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+.dialog-topic {
+    text-align: center;
+    font-family: 'Noto Sans TC';
+    font-size: 24px;
+    font-weight: 700;
+    color: #666666;
+    margin-bottom: 15px;
+}
+
+.error-message {
+    color: red;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-family: 'Noto Sans TC';
+    font-size: 14px;
+}
+
+.form-group {
+    margin-bottom: 10px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 15px;
+    height: 45px;
+    border-color: #CCCCCC;
+    border-width: 1px;
+    border-radius: 5px;
+    font-family: 'Noto Sans TC';
+    font-size: 16px;
+}
+.content-wrapper button {
+    height: 45px;
+    width: 100%;
+    background-color: #448899;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Noto Sans TC';
+    font-size: 19px;
+    color: #FFFFFF;
+}
+.register {
+    font-family: 'Noto Sans TC';
+    font-size: 16px;
+    color: #666666;
+    text-align: center;
+    padding-top: 5px;
+}
+  
+
+/*註冊的彈出視窗*/
+/* Add this CSS for the 註冊 modal */
+.R-modal {
+    display: none;
+    position: fixed;
+    z-index: 3;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+    padding-top: 60px;
+  } 
+  
+.R-modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    max-width: 340px;
+    max-height: auto;
+    border-radius: 3%;
+    overflow: hidden;
+}
+.R-content-wrapper {
+    padding: 15px;
+    height: auto;
+    position: relative;
+}
+
+.R-close-button {
+    width: 30px;
+    height: 30px;
+    background-image: url('close.png');
+    position: absolute;
+    right: 10px;
+}
+
+.R-close-button:hover,
+.R-close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.R-error-message {
+    color: red;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-family: 'Noto Sans TC';
+    font-size: 14px;
+}
+.R-content-wrapper button {
+    height: 45px;
+    width: 100%;
+    background-color: #448899;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Noto Sans TC';
+    font-size: 19px;
+    color: #FFFFFF;
+}
+.back-to-login {
+    font-family: 'Noto Sans TC';
+    font-size: 16px;
+    color: #666666;
+    text-align: center;
+    padding-top: 5px;
+}

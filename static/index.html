@@ -16,49 +16,102 @@
           <li class="menu-left">台北一日遊</li>
           <div class="menu-right-container">
             <li class="menu-right">預定行程</li>
-            <li class="menu-right">登入/註冊</li>
+            <li class="only-occupy-1space">
+              <span class="menu-right-login" id="login-register">登入/註冊</span>
+              <span class="menu-right-logout" id="logout">登出系統</span>
+            </li>
           </div>
         </ul>
       </div>
     </nav>
 
-    <header class="header">
-      <div class="header-content">
-        <div class="header-t1">
-        輕鬆享受台北一日悠閒
+
+      <header class="header">
+        <div class="header-content">
+          <div class="header-t1">
+          輕鬆享受台北一日悠閒
+          </div>
+          <div class="header-t2">
+          探索每個角落，體驗城市的深度旅遊行程
+          </div>
+          <div class="search-box">
+            <input type="text" id="search-input" name="search" placeholder="輸入景點名稱查詢">
+            <button type="submit" id="search-button"></button>
+          </div>
         </div>
-        <div class="header-t2">
-        探索每個角落，體驗城市的深度旅遊行程
+      </header>
+
+      <!--Here add a scrollable horizontal list bar of MRT-->
+      <div class="mrt-list-container">
+          <button class="scroll-button left" id="scroll-left"></button>
+          <div class="mrt-list-wrapper">
+            <div class="mrt-list" id="mrt-list"></div>
+          </div>
+          <button class="scroll-button right" id="scroll-right"></button>
+      </div>
+
+
+      <div class="grid-container" id="grid-container">
+        <div class="grid-content" id="grid-content">
         </div>
-        <div class="search-box">
-          <input type="text" id="search-input" name="search" placeholder="輸入景點名稱查詢">
-          <button type="submit" id="search-button"></button>
+      </div>   
+
+
+      <footer class="footer">
+        COPYRIGHT © 2021 台北一日遊
+      </footer>
+
+      <!-- 登入 Modal -->
+      <div id="modal" class="modal">
+        <div class="modal-content">
+          <div class="decorator-bar"></div>
+          <div class="content-wrapper">
+            <div class="close-button" id="close-button"></div>
+            <form id="auth-form">
+              <div class="dialog-topic">登入會員帳戶</div>
+              <div class="form-group">
+                <input type="email" id="email" name="email" placeholder="輸入電子信箱" required>
+              </div>
+              <div class="form-group">
+                <input type="password" id="password" name="password" placeholder="輸入密碼" required>
+              </div>
+              <div id="error-message" class="error-message"></div>
+              <button type="submit" id="login-button">登入帳戶</button>
+            </form>
+            <div id="register" class="register">還沒有帳戶? 點此註冊</div>
+          </div>
         </div>
       </div>
-    </header>
 
-    <!--Here add a scrollable horizontal list bar of MRT-->
-    <div class="mrt-list-container">
-        <button class="scroll-button left" id="scroll-left"></button>
-        <div class="mrt-list-wrapper">
-          <div class="mrt-list" id="mrt-list"></div>
+      <!-- 註冊R-Modal -->
+      <div id="R-modal" class="R-modal">
+        <div class="R-modal-content">
+          <div class="decorator-bar"></div>
+          <div class="R-content-wrapper">
+            <div class="R-close-button" id="R-close-button"></div>
+            <form id="R-form">
+              <div class="dialog-topic">註冊會員帳號</div>
+              <div class="form-group">
+                <input type="text" id="R-name" name="R-name" placeholder="輸入姓名" required>
+              </div>
+              <div class="form-group">
+                <input type="email" id="R-email" name="R-email" placeholder="輸入電子郵件" required>
+              </div>
+              <div class="form-group">
+                <input type="password" id="R-password" name="R-password" placeholder="輸入密碼" required>
+              </div>
+              <div id="R-error-message" class="R-error-message"></div>
+              <button type="submit" id="R-button">註冊新帳戶</button>
+            </form>
+            <div id="back-to-login" class="back-to-login">已經有帳戶了?點此登入</div>
+          </div>
         </div>
-        <button class="scroll-button right" id="scroll-right"></button>
-    </div>
-
-
-    <div class="grid-container" id="grid-container">
-      <div class="grid-content" id="grid-content">
       </div>
-    </div>   
 
-
-    <footer class="footer">
-      COPYRIGHT © 2021 台北一日遊
-    </footer>
-
-
+  
   </div>
+  
+
   <script type="application/javascript" src="/static/index.js"></script>
 
   
