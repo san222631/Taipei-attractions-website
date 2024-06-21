@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     const errorMessage = document.getElementById('error-message');
     const login_register = document.getElementById('login-register')
     const logout = document.getElementById('logout')
+    const authForm = document.getElementById('auth-form');
 
     
     loginRegister.addEventListener('click', () => {
@@ -54,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
     });
     
-    loginButton.addEventListener('submit', (event) => {
+    authForm.addEventListener('submit', (event) => {
         event.preventDefault();
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
