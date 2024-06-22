@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const closeButton = document.getElementById('close-button');
     const loginButton = document.getElementById('login-button');
     const errorMessage = document.getElementById('error-message');
-    const login_register = document.getElementById('login-register');
     const logout = document.getElementById('logout');
     const authForm = document.getElementById('auth-form');
 
@@ -72,17 +71,19 @@ document.addEventListener('DOMContentLoaded', function () {
         body: JSON.stringify({ email: email, password: password })
       })
       .then(response => {
-        if (!response.ok) {
-          return response.json().then(data => {
-            throw new Error(data.detail.message);
-          });
-        }
-        return response.json();
+        return response.json().then(data => {
+            if (!response.ok) {
+                const error = new Error('HTTP error');
+                error.data = data;
+                throw error;
+            }
+            return data;
+        });
       })
       .then(data => {
         if (data.token){
             localStorage.setItem('received_Token', data.token);
-            console.log('Token存進了LocalStorage', data.token);
+            console.log(data);
             modal.style.display = 'none';
             errorMessage.textContent = '';
             location.reload()
@@ -91,8 +92,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       })
       .catch(error => {
-        errorMessage.textContent = error.message;
-        console.error('Error是:', error.message); 
+        if (error.data && error.data.detail) {
+            errorMessage.textContent = error.data.detail.message;
+            console.error(error.data.detail); // Log the entire detail object
+        } else {
+            errorMessage.textContent = error.message;
+            console.error('Error是:', error.message || error); 
+        }
       });
     });
 
@@ -107,6 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const R_form = document.getElementById('R-form');
 
     registerButton.addEventListener('click', function(){
+        errorMessage.textContent = '';
         modal.style.display = 'none';
         R_modal.style.display = 'block';
     });
@@ -117,16 +124,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     back_to_login.addEventListener('click', function(){
+        R_errorMessage.textContent = '';
         R_modal.style.display = 'none';
         modal.style.display = 'block';
     });
 
-    window.addEventListener('click', (event) => {
+    window.addEventListener('mousedown', (event) => {
         if (event.target == R_modal) {
           R_modal.style.display = 'none';
           R_errorMessage.textContent = '';
         }
-    });
+    });   
 
     R_form.addEventListener('submit', function(event){
         event.preventDefault(); //避免預設的submission
@@ -141,11 +149,13 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify({name: R_name, email: R_email, password: R_password})
         })
-        .then(response => {
+        .then(response => {  
             if (!response.ok) {
                 return response.json().then(data => {
-                    console.log("收到的response裡面的data:", data)
-                    throw new Error(data.detail.message);
+                    //console.log("收到的response裡面的data:", data)
+                    const error = new Error('HTTP error');
+                    error.data = data;
+                    throw error;
                 });
               }
               return response.json();
@@ -159,9 +169,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }            
         })
         .catch(error => {
-            console.log("抓到的Error:", error);
-            R_errorMessage.textContent = error.message;
-            console.error('註冊Error是:', error.message || error); //這個Error可以看看要改什麼
+            if (error.data && error.data.detail) {
+                R_errorMessage.textContent = error.data.detail.message;
+                console.error(error.data.detail); // Log the entire detail object
+            } else {
+                errorMessage.textContent = error.message;
+                console.error('Error是:', error.message || error);
+            }
         });
     })
 });
@@ -319,7 +333,7 @@ function fetchUserInfo() {
     const token = localStorage.getItem('received_Token');
 
     if (!token) {
-        console.error('LocalStorage沒有Token!');
+        console.error('LocalStorage沒有Token');
         renderLogin();
         //如果沒有token，直接回傳一個promise，讓其他功能也可以使用
         return Promise.resolve(null);
@@ -339,7 +353,7 @@ function fetchUserInfo() {
         return response.json();
     })
     .then(data => {
-        console.log('從UserApi收到的response', data);
+        console.log(data);
         //如果使用者token正確，要把收到的data傳給以後的promise chain
         if (data && data.data){
             renderLogout();

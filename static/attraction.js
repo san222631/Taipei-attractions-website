@@ -54,41 +54,48 @@ document.addEventListener('DOMContentLoaded', async() => {
         errorMessage.textContent = '';
         }
     });
-    
+
     authForm.addEventListener('submit', (event) => {
         event.preventDefault();
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
     
         fetch('/api/user/auth', {
-        method: 'PUT',
-        headers: {
+          method: 'PUT',
+          headers: {
             'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email: email, password: password })
+          },
+          body: JSON.stringify({ email: email, password: password })
         })
         .then(response => {
-        if (!response.ok) {
-            return response.json().then(data => {
-            throw new Error(data.detail.message);
-            });
-        }
-        return response.json();
+          return response.json().then(data => {
+              if (!response.ok) {
+                  const error = new Error('HTTP error');
+                  error.data = data;
+                  throw error;
+              }
+              return data;
+          });
         })
         .then(data => {
-        if (data.token){
-            localStorage.setItem('received_Token', data.token);
-            console.log('Token存進了LocalStorage', data.token);
-            modal.style.display = 'none';
-            errorMessage.textContent = '';
-            location.reload()
-        } else {
-            throw new Error('無效的token response');
-        }
+          if (data.token){
+              localStorage.setItem('received_Token', data.token);
+              console.log(data);
+              modal.style.display = 'none';
+              errorMessage.textContent = '';
+              location.reload()
+          } else {
+              throw new Error('無效的token response');
+          }
         })
         .catch(error => {
-        errorMessage.textContent = error.message;
-        console.error('Error是:', error.message); 
+          if (error.data && error.data.detail) {
+              errorMessage.textContent = error.data.detail.message;
+              console.error(error.data.detail); // Log the entire detail object
+          } else {
+              errorMessage.textContent = error.message;
+              console.error('Error是:', error.message || error); 
+          }
         });
     });
 
@@ -103,6 +110,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     const R_form = document.getElementById('R-form');
 
     registerButton.addEventListener('click', function(){
+        errorMessage.textContent = '';
         modal.style.display = 'none';
         R_modal.style.display = 'block';
     });
@@ -113,6 +121,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     });
 
     back_to_login.addEventListener('click', function(){
+        R_errorMessage.textContent = '';
         R_modal.style.display = 'none';
         modal.style.display = 'block';
     });
@@ -137,14 +146,16 @@ document.addEventListener('DOMContentLoaded', async() => {
             },
             body: JSON.stringify({name: R_name, email: R_email, password: R_password})
         })
-        .then(response => {
+        .then(response => {  
             if (!response.ok) {
                 return response.json().then(data => {
-                    console.log("收到的response裡面的data:", data)
-                    throw new Error(data.detail.message);
+                    //console.log("收到的response裡面的data:", data)
+                    const error = new Error('HTTP error');
+                    error.data = data;
+                    throw error;
                 });
-                }
-                return response.json();
+              }
+              return response.json();
         })
         .then(data => {
             if (data){
@@ -155,9 +166,13 @@ document.addEventListener('DOMContentLoaded', async() => {
             }            
         })
         .catch(error => {
-            console.log("抓到的Error:", error);
-            R_errorMessage.textContent = error.message;
-            console.error('註冊Error是:', error.message || error); //這個Error可以看看要改什麼
+            if (error.data && error.data.detail) {
+                R_errorMessage.textContent = error.data.detail.message;
+                console.error(error.data.detail); // Log the entire detail object
+            } else {
+                errorMessage.textContent = error.message;
+                console.error('Error是:', error.message || error);
+            }
         });
     })
 });
@@ -302,7 +317,7 @@ function fetchUserInfo() {
         return response.json();
     })
     .then(data => {
-        console.log('從UserApi收到的response', data);
+        console.log(data);
         //如果使用者token正確，要把收到的data傳給以後的promise chain
         if (data && data.data){
             renderLogout();
