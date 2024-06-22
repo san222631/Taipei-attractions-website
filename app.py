@@ -67,14 +67,13 @@ async def signup(register_Info: registerInfo):
         if (existingUser):
             cursor.close()
             conn.close()
-            raise HTTPException(
+            return JSONResponse(
                 status_code=400,
-                detail={
+                content={
                     "error": True,
                     "message": "email已經註冊過"
                 }
-            )
-           
+            )           
 
         register_query = """
         INSERT INTO member (name, email, hashed_password)
@@ -86,23 +85,23 @@ async def signup(register_Info: registerInfo):
             (register_name, register_email, register_password)
         )
         conn.commit()
-        return {"註冊成功": True}
+        return {"ok": True}
     except mysql.connector.Error as err:
         cursor.close()
         conn.close()
-        raise HTTPException(
+        return JSONResponse(
             status_code=500,
-            detail={
+            content={
                 "error": True,
                 "message": "MySQL出了問題"
             }
         )
-    except HTTPException as e:
-        raise e
     except Exception as e:
-        raise HTTPException(
+        cursor.close()
+        conn.close()
+        return JSONResponse(
             status_code=500,
-            detail={
+            content={
                 "error": True,
                 "message": "伺服器內部錯誤"
             }
@@ -134,15 +133,15 @@ async def authenticate(request: Request):
     auth_header = request.headers.get("Authorization")
     print(auth_header)
     if auth_header is None or not auth_header.startswith("Bearer"):
-        raise HTTPException(status_code=401, detail="無授權")
+        return None
+
     extracted_token = auth_header[len("Bearer "):]
     try:
         payload = jwt.decode(extracted_token, SECRET_KEY, algorithms=[ALGORITHM])
     except PyJWTError:
-        payload = None
-        return payload
+        return None
     if payload is None:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+        return None
     
     #資料庫內驗證使用者
     conn =None
@@ -161,27 +160,22 @@ async def authenticate(request: Request):
         conn.close()
         print(verified_user)
         if not verified_user:
-            return {"null"}
-        return {"data": verified_user}
-    
-    except HTTPException as e:
-        raise e
+            return None
+        return {"data": verified_user}    
+
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail={
+        return JSONResponse(
+            status_code=500, 
+            content={
                 "error": True,
                 "message": "伺服器內部錯誤"
-            }
+                }
         )
     finally:
         if cursor:
             cursor.close()
         if conn:
-            conn.close()
-
-
-    
+            conn.close()    
 
 
 
@@ -220,63 +214,57 @@ async def login(user_info: UserInfo):
         cursor = conn.cursor(dictionary=True)
         received_email = user_info.email
         received_password = user_info.password
-        print(user_info.email)
         cursor.execute(
             "SELECT id, name, email, hashed_password FROM member WHERE email = %s",
             (received_email,)
-            )
+        )
         fetched_user = cursor.fetchone()
         cursor.close()
         conn.close()
         #verify_password = pwd_context.verify(received_password, fetched_user["hashed_password"])
-        print(fetched_user)
+
         #要return None嗎?
         if not fetched_user:
-            raise HTTPException(
-                status_code=400,
-                detail={
-                "error": True,
-                "message": "找不到這位使用者"                    
-                }
-            )
+            return JSONResponse(
+                status_code=400, 
+                content={"error": True, "message": "找不到這位使用者"}
+            )          
         if not received_password == fetched_user["hashed_password"]:
-            raise HTTPException(
-                status_code=400,
-                detail={
-                "error": True,
-                "message": "密碼錯誤"                    
-                }
-            )         
+            return JSONResponse(
+                status_code=400, 
+                content={"error": True, "message": "密碼錯誤"}
+            )       
         
         #在token加入有效的時間，然後加密
         original_data = {
             "id": fetched_user["id"],
             "name": fetched_user["name"],
             "email": fetched_user["email"]}
-        print(original_data)
         data_to_encode = original_data.copy()
-        expire_time = datetime.now(timezone.utc) + timedelta(minutes=30)
+        expire_time = datetime.now(timezone.utc) + timedelta(days=7)
         data_to_encode.update({"exp": expire_time})
-        print(data_to_encode)
         encoded_jwt = jwt.encode(data_to_encode, SECRET_KEY, algorithm=ALGORITHM)
         return {"token": encoded_jwt} 
-
         
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "error": True,
-                "message": "伺服器內部錯誤"
-            }
-        )
-    finally:
+    except mysql.connector.Error as err:
         if cursor:
             cursor.close()
         if conn:
             conn.close()
+        return JSONResponse(
+            status_code=500, 
+            content={"error": True, "message": "內部伺服器錯誤"}
+        )
+    except Exception as e:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+        return JSONResponse(
+            status_code=500, 
+            content={"error": True, "message": "內部伺服器錯誤"}
+        )
+
         
     
 

@@ -68,7 +68,8 @@ document.addEventListener('DOMContentLoaded', async() => {
           body: JSON.stringify({ email: email, password: password })
         })
         .then(response => {
-          return response.json().then(data => {
+          return response.json()
+          .then(data => {
               if (!response.ok) {
                   const error = new Error('HTTP error');
                   error.data = data;
@@ -83,15 +84,15 @@ document.addEventListener('DOMContentLoaded', async() => {
               console.log(data);
               modal.style.display = 'none';
               errorMessage.textContent = '';
-              location.reload()
+              renderLogout()
           } else {
               throw new Error('無效的token response');
           }
         })
         .catch(error => {
-          if (error.data && error.data.detail) {
-              errorMessage.textContent = error.data.detail.message;
-              console.error(error.data.detail); // Log the entire detail object
+          if (error.data) {
+              errorMessage.textContent = error.data.message;
+              console.error(error.data); // Log the entire detail object
           } else {
               errorMessage.textContent = error.message;
               console.error('Error是:', error.message || error); 
@@ -126,7 +127,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         modal.style.display = 'block';
     });
 
-    window.addEventListener('click', (event) => {
+    window.addEventListener('mousedown', (event) => {
         if (event.target == R_modal) {
             R_modal.style.display = 'none';
             R_errorMessage.textContent = '';
@@ -147,18 +148,18 @@ document.addEventListener('DOMContentLoaded', async() => {
             body: JSON.stringify({name: R_name, email: R_email, password: R_password})
         })
         .then(response => {  
-            if (!response.ok) {
-                return response.json().then(data => {
-                    //console.log("收到的response裡面的data:", data)
+            return response.json()
+            .then(data => {
+                if (!response.ok) {
                     const error = new Error('HTTP error');
                     error.data = data;
                     throw error;
-                });
-              }
-              return response.json();
+                }
+                return data;
+            });
         })
         .then(data => {
-            if (data){
+            if (data.ok){
                 console.log(data);
                 R_errorMessage.textContent = '註冊成功';
             } else {
@@ -166,9 +167,9 @@ document.addEventListener('DOMContentLoaded', async() => {
             }            
         })
         .catch(error => {
-            if (error.data && error.data.detail) {
-                R_errorMessage.textContent = error.data.detail.message;
-                console.error(error.data.detail); // Log the entire detail object
+            if (error.data) {
+                R_errorMessage.textContent = error.data.message;
+                console.error(error.data); // Log the entire detail object
             } else {
                 errorMessage.textContent = error.message;
                 console.error('Error是:', error.message || error);
@@ -296,30 +297,27 @@ function updateCost() {
 function fetchUserInfo() {
     const token = localStorage.getItem('received_Token');
 
-    if (!token) {
-        console.error('LocalStorage沒有Token!');
-        renderLogin();
-        //如果沒有token，直接回傳一個promise，讓其他功能也可以使用
-        return Promise.resolve(null);
-    }
     //這個return很重要，因為有這個才有完整的promise chain，其他功能可以使用驗證以後的promise
     return fetch('/api/user/auth', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            //token ? ... : ... 這個確認token變數是不是truthy，非null,undefined, empty string
+            //如果truthy，冒號前面的會執行; falsy的話，後面的empty string會執行
+            'Authorization': token ? `Bearer ${token}` : ''
         }
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('Network response不ok');
+            throw new Error('網路response was not ok')
         }
         return response.json();
-    })
+    }
+    )
     .then(data => {
         console.log(data);
         //如果使用者token正確，要把收到的data傳給以後的promise chain
-        if (data && data.data){
+        if (data !== null && data.data){
             renderLogout();
             return data.data;
         } else {
