@@ -385,3 +385,25 @@ document.getElementById('logout').addEventListener('click', function(){
     //登出後重整頁面
     location.reload();
 })
+
+
+
+
+
+//預定行程的按鈕
+document.getElementById('start-booking').addEventListener('click', async function(){
+    const check_status = await fetchUserInfo();
+    if (check_status) {
+        window.location.href = '/booking';
+    } else {
+        showLoginModal();
+    }
+});
+
+
+//彈出登入視窗
+function showLoginModal() {
+    document.getElementById('modal').style.display = 'block';
+}
+
+

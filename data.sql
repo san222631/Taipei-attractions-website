@@ -16,6 +16,40 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `booking`
+--
+
+DROP TABLE IF EXISTS `booking`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `booking` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `member_id` bigint DEFAULT NULL,
+  `attraction_id` bigint DEFAULT NULL,
+  `booking_date` date NOT NULL,
+  `booking_time` varchar(20) NOT NULL,
+  `booking_price` decimal(10,2) NOT NULL,
+  `time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `fk_booking_usefuldata` (`attraction_id`),
+  KEY `fk_booking_member` (`member_id`),
+  CONSTRAINT `fk_booking_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_booking_usefuldata` FOREIGN KEY (`attraction_id`) REFERENCES `usefuldata` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `booking`
+--
+
+LOCK TABLES `booking` WRITE;
+/*!40000 ALTER TABLE `booking` DISABLE KEYS */;
+INSERT INTO `booking` VALUES (8,4,8,'2024-06-25','morning',2000.00,'2024-06-28 22:43:06');
+/*!40000 ALTER TABLE `booking` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `images`
 --
 
@@ -56,7 +90,7 @@ CREATE TABLE `member` (
   `hashed_password` varchar(255) NOT NULL,
   `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -65,7 +99,7 @@ CREATE TABLE `member` (
 
 LOCK TABLES `member` WRITE;
 /*!40000 ALTER TABLE `member` DISABLE KEYS */;
-INSERT INTO `member` VALUES (1,'test','test@test','test','2024-06-18 16:27:12'),(2,'aa','aa','aa','2024-06-18 21:33:28'),(3,'string','string','string','2024-06-19 19:53:44'),(4,'as','as@as','as','2024-06-19 20:19:08'),(5,'t','t@t','t','2024-06-19 21:15:40'),(6,'me','me@me','me','2024-06-19 21:18:16'),(7,'q','q@q','q','2024-06-20 10:31:21'),(8,'yo','yo@yo','yo','2024-06-21 11:21:13'),(9,'pieter','p@p','pieter','2024-06-21 11:22:05');
+INSERT INTO `member` VALUES (1,'test','test@test','test','2024-06-18 16:27:12'),(2,'aa','aa','aa','2024-06-18 21:33:28'),(3,'string','string','string','2024-06-19 19:53:44'),(4,'as','as@as','as','2024-06-19 20:19:08'),(5,'t','t@t','t','2024-06-19 21:15:40'),(6,'me','me@me','me','2024-06-19 21:18:16'),(7,'q','q@q','q','2024-06-20 10:31:21'),(8,'yo','yo@yo','yo','2024-06-21 11:21:13'),(9,'pieter','p@p','pieter','2024-06-21 11:22:05'),(10,'hohoho','ho@ho','hohoho','2024-06-21 14:27:48'),(11,'momo','mo@mo','momo','2024-06-22 07:36:34'),(12,'qq','qq@qq','qq','2024-06-22 19:34:18'),(13,'ee','aa@aa','e','2024-06-22 19:47:44'),(14,'we','we@we','we','2024-06-22 19:58:02');
 /*!40000 ALTER TABLE `member` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -110,4 +144,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-21 14:22:27
+-- Dump completed on 2024-06-29  0:53:29

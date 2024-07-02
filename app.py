@@ -476,6 +476,7 @@ async def check_order(request: Request):
     extracted_token = token[len("Bearer "):]
     try:
         payload = jwt.decode(extracted_token, SECRET_KEY, algorithms=[ALGORITHM])
+        print(payload)
     except PyJWTError:
         return JSONResponse(
             status_code = 403,
@@ -509,13 +510,14 @@ async def check_order(request: Request):
             """
             cursor.execute(attraction_query, (booked_spot_id,))
             existing_attraction = cursor.fetchone()
+            print(existing_attraction)
             existing_response = {
                 "data": {
                     "attraction": {
                     "id": booked_spot_id,
                     "name": existing_attraction['name'],
                     "address": existing_attraction['address'],
-                    "image": existing_attraction['image_urls']
+                    "image": existing_attraction['url']
                     },
                     "date": existingUser['booking_date'],
                     "time": existingUser['booking_time'],
@@ -558,7 +560,7 @@ async def check_order(request: Request):
 
 #把使用者input的date,time,price以及attractionId, userId加入資料庫
 class BookingInfo(BaseModel):
-    attraction_id: int
+    attractionId: int
     date: str
     time: str
     price: int
@@ -593,7 +595,7 @@ async def save_booking_in_mysql(request: Request, booking_info: BookingInfo):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor(dictionary=True)
         booking_user_id = payload.get("id")
-        booking_attraction_id = booking_info.attraction_id
+        booking_attraction_id = booking_info.attractionId
         booking_date = booking_info.date 
         booking_time = booking_info.time
         booking_price = booking_info.price

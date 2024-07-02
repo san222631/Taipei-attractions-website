@@ -1,3 +1,5 @@
+//全域變數，給"開始預訂行程"用的
+let attractionData = null;
 
 //用async+await因為跟api要的資料馬上會給使用者看到
 document.addEventListener('DOMContentLoaded', async() => {
@@ -6,7 +8,6 @@ document.addEventListener('DOMContentLoaded', async() => {
     const pathname = window.location.pathname;
     //得到"/attraction/id"以後，用/分開然後取最後一個
     const specialId = pathname.split('/').pop();
-
 
     try {
         //等fetch call拿到promise以後才做下一步動作
@@ -20,6 +21,8 @@ document.addEventListener('DOMContentLoaded', async() => {
         const data = await response.json();
         //檢查json
         console.log(data);
+        //存起來給"開始預訂行程"用
+        attractionData = data;
 
         addDetails(data);
 
@@ -355,3 +358,59 @@ document.getElementById('logout').addEventListener('click', function(){
     //登出後重整頁面
     location.reload();
 })
+
+
+
+
+//開始預約行程
+document.getElementById('reserve').addEventListener('click', async function(event){
+    event.preventDefault();
+    const check_status = await fetchUserInfo();
+    if (check_status) {
+        const token = localStorage.getItem('received_Token');
+        if (!attractionData){
+            throw new Error('Not in existing attraction');
+        }
+        const response = await fetch('/api/booking', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({
+                "attractionId": attractionData.data.id,
+                "date": document.getElementById('selected-date').value,
+                "time": document.querySelector('input[name="time"]:checked').value,
+                "price": document.getElementById('real-price').textContent.replace('新台幣 ', '').replace('元', '').trim() 
+            })
+        });
+        if (!response.ok) {
+            throw new Error(`/api/booking的response有錯誤: ${response.statusText}`);
+        };
+
+        const data = await response.json();
+        if (data.ok) {
+            window.location.href = '/booking';
+        } else {
+            throw new Error('新增行程失敗');
+        }
+    } else {
+        showLoginModal();
+    } 
+});
+
+
+//預定行程的按鈕
+document.getElementById('start-booking').addEventListener('click', async function(){
+    const check_status = await fetchUserInfo();
+    if (check_status) {
+        window.location.href = '/booking';
+    } else {
+        showLoginModal();
+    }
+});
+
+//彈出登入視窗
+function showLoginModal() {
+    document.getElementById('modal').style.display = 'block';
+}

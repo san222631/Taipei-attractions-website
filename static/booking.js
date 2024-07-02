@@ -1,11 +1,28 @@
 document.addEventListener('DOMContentLoaded', async() => {
-    fetchUserInfo()
+    const userInfo = await fetchUserInfo();
+
+    if (userInfo) {
+        //加入會換名字的問候語
+        console.log(userInfo)
+        const greeting = document.getElementById('greeting');
+        greeting.textContent = `您好，${userInfo.name}，待預定的行程如下:`;
+        fetchBookingDetails();
+    } else {
+        window.location.href = '/';
+    }
+
+
     //拿url的port以後的部分，這邊是拿"8000/"以後的"/attraction/id"
     const pathname = window.location.pathname;
     //得到"/attraction/id"以後，用/分開然後取最後一個
     const specialId = pathname.split('/').pop();
 
 
+    //按台北一日遊就回首頁
+    const goIndex = document.getElementById('go-index');
+    goIndex.addEventListener('click', function(){
+        window.location.href = '/';
+    });
 
 
     //處理登入
@@ -155,12 +172,122 @@ document.addEventListener('DOMContentLoaded', async() => {
                 console.error('Error是:', error.message || error);
             }
         });
-    })
+    });
+
+
+    //限制輸入信用卡資料的格式
+    const cardNumberInput = document.getElementById('card-number');
+    const expDateInput = document.getElementById('exp-date');
+
+    cardNumberInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        let formattedValue = value.replace(/(.{4})/g, '$1 ').trim();
+        e.target.value = formattedValue;
+    });
+
+    expDateInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        let formattedValue = value.replace(/^(\d{2})(\d{2})/, '$1/$2');
+        e.target.value = formattedValue.substring(0, 5);
+    });
+
+    document.getElementById('order-form').addEventListener('submit', function(e) {
+        const expDate = expDateInput.value;
+        const expDatePattern = /^(0[1-9]|1[0-2])\/\d{2}$/; // MM/YY format
+
+        if (!expDatePattern.test(expDate)) {
+            alert('請輸入有效的過期時間 (MM/YY)');
+            e.preventDefault(); // Prevent form submission
+        }
+    });
 });
 
+//去資料庫拿特定user的購物車的資料
+async function fetchBookingDetails() {
+    const token = localStorage.getItem('received_Token');
+    try {
+        const response = await fetch(`/api/booking`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        console.log(response)
+        if (!response.ok) {
+            throw new Error(`/api/booking的response有錯誤: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        //加入各種booking細節或是出現"目前沒有預定行程"
+        if (data && data.data) {
+            addBooking(data);
+        } else {
+            //沒有預定行程在資料庫，因此隱藏預定行程，顯示無行程
+            const bookingFound1 = document.getElementById('booking-found-1');
+            const bookingFound2 = document.getElementById('booking-found-2');
+            const noBooking = document.getElementById('no-booking');
+            bookingFound1.classList.remove('visible');
+            bookingFound2.classList.remove('visible');
+            noBooking.classList.add('visible');
+            document.getElementById('no-booking').textContent = '目前沒有任何待預定的行程';
+        }
+        
+    } catch (error) {
+        console.error('收到response前有錯誤:', error);
+    }
+}
 
 
+let fetching = false;
 
+//在HTML加入各種資料
+function addBooking(data_booking) {
+    if (fetching) return;
+    fetching = true;
+
+    //有預定行程在資料庫，因此顯示預定行程
+    const bookingFound1 = document.getElementById('booking-found-1');
+    const bookingFound2 = document.getElementById('booking-found-2');
+    const noBooking = document.getElementById('no-booking');
+    bookingFound1.classList.add('visible');
+    bookingFound2.classList.add('visible');
+    noBooking.classList.remove('visible');
+
+    //加入圖片
+    const first_image = document.getElementById('first-image');
+    const image_itself = document.createElement('img');
+    image_itself.src = data_booking.data.attraction.image;
+    image_itself.className = 'image-itself';
+    image_itself.alt = data_booking.data.attraction.name;
+    first_image.appendChild(image_itself);
+
+    //加入booking資料庫內的景點資料
+    const booking_name = document.getElementById('name');
+    booking_name.textContent = `台北一日遊: ${data_booking.data.attraction.name}`;
+    
+    const booking_date = document.getElementById('date');
+    booking_date.textContent = `日期: ${data_booking.data.date}`;
+
+    const booking_time = document.getElementById('time');
+    booking_time.textContent = `時間: ${data_booking.data.time}`;
+
+    const booking_price = document.getElementById('price');
+    booking_price.textContent = `費用: ${data_booking.data.price}元`;
+
+    const booking_address = document.getElementById('address');
+    booking_address.textContent = `地點: ${data_booking.data.attraction.address}`;
+
+    //加入刪除按鈕
+    const delete_button = document.getElementById('delete-booking');
+    delete_button.addEventListener('click', async function(){
+        deleteBooking();
+    }); 
+    
+
+    const total_price = document.getElementById('total-price');
+    total_price.textContent = `總價: 新台幣${data_booking.data.price}元`;
+}
 
 
 
@@ -229,3 +356,35 @@ document.getElementById('logout').addEventListener('click', function(){
     //登出後重整頁面
     location.reload();
 })
+
+
+
+
+//刪除booking資料庫
+async function deleteBooking() {
+    const token = localStorage.getItem('received_Token');
+
+    try {
+        const response = await fetch(`/api/booking`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`/api/booking的response有錯誤: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        if (data.ok) {
+            //刪除成功的話，refresh page載入資料
+            await fetchBookingDetails();
+        } else {
+            throw new Error('刪除行程失敗');
+        }
+    } catch (error) {
+        console.error('刪除行程時發生錯誤:', error);
+        alert('刪除行程時發生錯誤');
+    }
+}
