@@ -1,4 +1,3 @@
-
 from fastapi import *
 from fastapi.responses import FileResponse, JSONResponse
 from typing import Optional
@@ -11,6 +10,11 @@ from datetime import datetime, timedelta, timezone
 from passlib.context import CryptContext
 import jwt
 from jwt import PyJWTError
+
+import uuid
+import json
+#要記得安裝pip install httpx
+import httpx 
 
 
 
@@ -725,6 +729,199 @@ async def delete_booking(request: Request):
     
 
     
+#從前端收到prime跟其他資料，建立新訂單
+@app.post("/api/orders")
+async def create_order(request: Request):
+    #檢查是否有token
+    token = request.headers.get('Authorization')
+    if not token or not token.startswith("Bearer "):
+        return JSONResponse(
+            status_code = 403,
+            content = {
+                "error": True,
+                "message": "未登入系統，拒絕存取"
+            }
+        )    
+            
+    extracted_token = token[len("Bearer "):]
+    try:
+        payload = jwt.decode(extracted_token, SECRET_KEY, algorithms=[ALGORITHM])
+    except PyJWTError:
+        return JSONResponse(
+            status_code = 403,
+            content = {
+                "error": True,
+                "message": "未登入系統，拒絕存取"
+            }
+        )
+    
+    #看前端送來的request正不正確
+    booking_user_id = payload.get("id")
+    body = await request.json()
+    prime = body.get("prime")
+    order_info = body.get("order")
+    contact_info = body.get("contact")
+    print('這是body:', body)
+    print('這是order_info:', order_info)
+    print('這是contact_info:', contact_info)
+    if not prime:
+        return JSONResponse(
+            status_code=400,
+            content= {
+                "error": True,
+                "message": "prime有誤，訂單建立失敗"
+            }
+        )
+    if not order_info:
+        return JSONResponse(
+            status_code=400,
+            content= {
+                "error": True,
+                "message": "輸入的訂單資訊不正確，訂單建立失敗"
+            }
+        )
+    if not contact_info:
+        return JSONResponse(
+            status_code=400,
+            content= {
+                "error": True,
+                "message": "輸入的聯絡人資訊不正確，訂單建立失敗"
+            }
+        )
+    
+    order_number = str(uuid.uuid4())
+    
+    conn = None
+    cursor = None
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor(dictionary=True)
+
+        query_orders = """
+            INSERT INTO orders (order_number, order_info, contact, order_status)
+            VALUES
+            (%s, %s, %s, %s)
+            """
+        order_status = "UNPAID"
+        cursor.execute(query_orders, 
+                        (
+                        order_number,
+                        json.dumps(order_info), #把dictionary變成JSON string 才能存進mysql
+                        json.dumps(contact_info), #把dictionary變成JSON string 才能存進mysql
+                        order_status
+                        )                       
+                        )
+        query_payment = """
+            INSERT INTO payment (order_number, prime)
+            VALUES
+            (%s, %s)
+            """
+        cursor.execute(query_payment, 
+                        (
+                        order_number,
+                        prime,                     
+                        )                        
+                        )
+        query_delete_booking = """
+            DELETE FROM booking 
+            WHERE member_id = %s
+            """
+        cursor.execute(query_delete_booking, (booking_user_id,))
+        conn.commit()
+
+        #Call "Tappay Pay By Prime" API
+        TAPPAY_API_URL = "https://sandbox.tappaysdk.com/tpc/payment/pay-by-prime"
+        PARTNER_KEY = "partner_jmg7WOPdhPJ3GcEZ89MYDcIsx0OCR0drYRwgnQNpmr727zbqrximL3S1"
+        MERCHANT_ID = "san222631_CTBC_Union_Pay"
+        payment_payload = {
+            "prime": prime,
+            "partner_key": PARTNER_KEY,
+            "merchant_id": MERCHANT_ID,
+            "amount": order_info["price"],
+            "details": "TapPay Test",
+            "cardholder": {
+                "phone_number": contact_info["phone"],
+                "name": contact_info["name"],
+                "email": contact_info["email"]
+            }
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": PARTNER_KEY
+        }
+
+        #call Tappay PayByPrime API
+        async with httpx.AsyncClient() as client:
+            payment_response = await client.post(TAPPAY_API_URL, json=payment_payload, headers=headers)
+        payment_result = payment_response.json()
+        print('這是PayByPrime API的response:', payment_result)
+
+
+        #從這裡開始檢查!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if payment_result["status"] == 0:
+            # Payment succeeded
+            order_status = "PAID"
+            payment_status = payment_result["status"]
+            cursor.execute("""
+                UPDATE orders
+                SET order_status = %s
+                WHERE order_number = %s
+                """, (order_status, order_number))
+            cursor.execute("""
+                UPDATE payment
+                SET payment_status = %s, payment_record = %s
+                WHERE order_number = %s
+                """, (payment_status, json.dumps(payment_result), order_number))
+            conn.commit()
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "data": {
+                        "number": order_number,
+                        "payment": {
+                            "status": payment_result["status"],
+                            "message": "付款成功"
+                        }
+                    }
+                }
+            )
+        else:
+            # Payment failed
+            order_status = "UNPAID"
+            payment_status = payment_result["status"]
+            cursor.execute("""
+                UPDATE payment
+                SET payment_status = %s, payment_record = %s
+                WHERE order_number = %s
+                """, (payment_status, json.dumps(payment_result), order_number)
+                )
+            conn.commit()
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "data": {
+                        "number": order_number,
+                        "payment": {
+                            "status": payment_result["status"],
+                            "message": f"訂單建立成功，但付款失敗: {payment_result['msg']}"
+                        }
+                    }
+                }
+            )
+
+    except Error as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": True,
+                "message": f"伺服器內部錯誤: {str(e)}"
+            }
+        )
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 

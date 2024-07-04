@@ -6,6 +6,7 @@
   <title>Booking</title>
   <link rel="stylesheet" href="/static/booking.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700&display=swap" rel="stylesheet">
+  <script src="https://js.tappaysdk.com/sdk/tpdirect/v5.14.0"></script>
 </head>
 <body>
   <!--最上面的Navigation-->
@@ -75,17 +76,20 @@
 
         <div class="extra-1">
           <div class="form-topic">信用卡付款資訊</div>
-          <div class="contact-title">
+          <div class="contact-title-card">
             <label for="card-number">卡片號碼:</label>
-            <input type="text" id="card-number" name="card-number" placeholder="**** **** **** ****" maxlength="19" required>
+            <div type="text" id="card-number" class="tpfield" name="card-number">
+            </div>
           </div>
-          <div class="contact-title">
-            <label for="exp-date">過期時間:</label>
-            <input type="text" id="exp-date" name="exp-date" placeholder="MM/YY" maxlength="5" required>
-          </div>
-          <div class="contact-title">
-            <label for="cvv">驗證密碼:</label>
-            <input type="text" id="cvv" name="cvv" maxlength="4" placeholder="CVV" required>
+          <div class="contact-title-card">
+            <label for="card-expiration-date">過期時間:</label>
+            <div type="text" id="card-expiration-date" class="tpfield" name="exp-date">
+            </div>
+            </div>
+          <div class="contact-title-card">
+            <label for="card-ccv">驗證密碼:</label>
+            <div type="text" id="card-ccv" class="tpfield" name="ccv">
+            </div>
           </div>
         </div>
 
@@ -157,3 +161,27 @@
 <script type="application/javascript" src="/static/booking.js"></script>  
 </body>
 </html>
+
+
+
+
+
+<!--
+        <div class="extra-1">
+          <div class="form-topic">信用卡付款資訊</div>
+          <div class="contact-title">
+            <label for="card-number">卡片號碼:</label>
+            <div type="text" id="card-number" name="card-number" placeholder="**** **** **** ****" maxlength="19" required>
+            </div>
+          </div>
+          <div class="contact-title" id="card-expiration-date">
+            <label for="exp-date">過期時間:</label>
+            <input type="text" id="exp-date" name="exp-date" placeholder="MM/YY" maxlength="5" required>
+          </div>
+          <div class="contact-title" id="card-cvv">
+            <label for="cvv">驗證密碼:</label>
+            <input type="text" id="cvv" name="cvv" maxlength="4" placeholder="CVV" required>
+          </div>
+        </div>
+
+-->

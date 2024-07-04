@@ -1,4 +1,185 @@
 document.addEventListener('DOMContentLoaded', async() => {
+    //連上TAPPAY
+    const APP_IP = '151825';
+    const APP_KEY = 'app_Idf5nklHD5lm9I0kpTtnzc3DLDv9EEFnmQUpj205kr5LAvufIEAdeE0iOzKS';
+    const SERVER_TYPE = 'sandbox';
+
+    TPDirect.setupSDK(APP_IP, APP_KEY, SERVER_TYPE);
+    TPDirect.card.setup({
+        fields: {
+            number: {
+                element: '#card-number',
+                placeholder: '**** **** **** ****'
+            },
+            expirationDate: {
+                element: '#card-expiration-date',
+                placeholder: 'MM / YY'
+            },
+            ccv: {
+                element: '#card-ccv',
+                placeholder: 'ccv'
+            }
+        },
+        styles: {
+            'input': {
+                'color': 'gray'
+            },
+            ':focus': {
+                'color': 'black'
+            },
+            '.valid': {
+                'color': 'green'
+            },
+            '.invalid': {
+                'color': 'red'
+            },
+            '@media screen and (max-width: 400px)': {
+                'input': {
+                    'color': 'orange'
+                }
+            }
+        },
+        isMaskCreditCardNumber: true,
+        maskCreditCardNumberRange: {
+            beginIndex: 6,
+            endIndex: 11
+        }
+    });
+
+    // Enable or disable the submit button based on the card form's state
+    TPDirect.card.onUpdate(function (update) {
+        const submitButton = document.getElementById('O-button');
+
+        if (update.canGetPrime) {
+            // Enable the submit button
+            submitButton.removeAttribute('disabled');
+        } else {
+            // Disable the submit button
+            submitButton.setAttribute('disabled', true);
+        }
+
+        // Optionally, handle card type
+        if (update.cardType === 'visa') {
+            // Handle card type visa.
+        }
+
+        // Handle the status of each field
+        const fields = ['number', 'expiry', 'ccv'];
+        fields.forEach(field => {
+            const fieldStatus = update.status[field];
+            const fieldElement = document.getElementById(`card-${field}`);
+            if (fieldStatus === 2) {
+                setFieldToError(fieldElement);
+            } else if (fieldStatus === 0) {
+                setFieldToSuccess(fieldElement);
+            } else {
+                setFieldToNormal(fieldElement);
+            }
+        });
+    });
+
+    function setFieldToNormal(field) {
+        const fieldElement = document.getElementById(field);
+        if (fieldElement) {
+            fieldElement.style.borderColor = "";
+        }
+    }
+    
+    function setFieldToSuccess(field) {
+        const fieldElement = document.getElementById(field);
+        if (fieldElement) {
+            fieldElement.style.borderColor = "green";
+        }
+    }
+    
+    function setFieldToError(field) {
+        const fieldElement = document.getElementById(field);
+        if (fieldElement) {
+            fieldElement.style.borderColor = "red";
+        }
+    }
+
+
+    const bookingInfo = await fetchBookingDetails();
+    //測試是否有錯!!!!!!!!!!!!!!!!!!!
+    if (!bookingInfo || !bookingInfo.data) {
+        console.error('Booking details are missing');
+        // Handle the case where bookingInfo is missing
+    } else {
+        console.log(bookingInfo);
+    }
+
+
+    // Handle form submission
+    document.getElementById('order-form').addEventListener('submit', onSubmit);
+    
+    // Define the onSubmit function
+    function onSubmit(event) {
+        event.preventDefault(); // Prevent the form from submitting normally
+
+        // Get the TapPay Fields status
+        const tappayStatus = TPDirect.card.getTappayFieldsStatus();
+
+        if (tappayStatus.canGetPrime) {
+            // Get prime
+            TPDirect.card.getPrime((result) => {
+                if (result.status !== 0) {
+                    alert('Failed to get prime: ' + result.msg);
+                    return;
+                }
+
+                alert('Get prime success, prime: ' + result.card.prime);
+
+                // Send prime to your server
+                const token = localStorage.getItem('received_Token');
+                fetch('/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        prime: result.card.prime,
+                        order: {
+                            price: bookingInfo.price,
+                            trip: {
+                                attraction: {
+                                    id: bookingInfo.attraction.id,
+                                    name: bookingInfo.attraction.name,
+                                    address: bookingInfo.attraction.address,
+                                    image: bookingInfo.attraction.image
+                                }
+                            },
+                            date: bookingInfo.date,
+                            time: bookingInfo.time                         
+                        },
+                        contact: {
+                            name: document.getElementById('O-name').value,
+                            email: document.getElementById('O-email').value,
+                            phone: document.getElementById('O-phone').value
+                        }
+                    })
+                }).then(response => {
+                    return response.json();
+                }).then(data => {
+                    if (data.data.payment.status == 0) {
+                        alert('付款成功');
+                        window.location.href = `/thankyou?number=${data.data.number}`;
+                    } else {
+                        alert('付款失敗: ' + data.data.payment.message);
+                        window.location.href = `/thankyou?number=${data.data.number}`;
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('付款失敗以及伺服器內部錯誤: ' + error.message);
+                });
+            });
+        } else {
+            alert('Please complete the card information correctly.');
+        }
+    }
+    
+
     const userInfo = await fetchUserInfo();
 
     if (userInfo) {
@@ -10,12 +191,6 @@ document.addEventListener('DOMContentLoaded', async() => {
     } else {
         window.location.href = '/';
     }
-
-
-    //拿url的port以後的部分，這邊是拿"8000/"以後的"/attraction/id"
-    const pathname = window.location.pathname;
-    //得到"/attraction/id"以後，用/分開然後取最後一個
-    const specialId = pathname.split('/').pop();
 
 
     //按台北一日遊就回首頁
@@ -174,32 +349,6 @@ document.addEventListener('DOMContentLoaded', async() => {
         });
     });
 
-
-    //限制輸入信用卡資料的格式
-    const cardNumberInput = document.getElementById('card-number');
-    const expDateInput = document.getElementById('exp-date');
-
-    cardNumberInput.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        let formattedValue = value.replace(/(.{4})/g, '$1 ').trim();
-        e.target.value = formattedValue;
-    });
-
-    expDateInput.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        let formattedValue = value.replace(/^(\d{2})(\d{2})/, '$1/$2');
-        e.target.value = formattedValue.substring(0, 5);
-    });
-
-    document.getElementById('order-form').addEventListener('submit', function(e) {
-        const expDate = expDateInput.value;
-        const expDatePattern = /^(0[1-9]|1[0-2])\/\d{2}$/; // MM/YY format
-
-        if (!expDatePattern.test(expDate)) {
-            alert('請輸入有效的過期時間 (MM/YY)');
-            e.preventDefault(); // Prevent form submission
-        }
-    });
 });
 
 //去資料庫拿特定user的購物車的資料
@@ -222,6 +371,8 @@ async function fetchBookingDetails() {
         //加入各種booking細節或是出現"目前沒有預定行程"
         if (data && data.data) {
             addBooking(data);
+            console.log('/api/booking收到的response:', data.data);
+            return data.data; //儲存到const attractionInfo
         } else {
             //沒有預定行程在資料庫，因此隱藏預定行程，顯示無行程
             const bookingFound1 = document.getElementById('booking-found-1');
@@ -231,10 +382,12 @@ async function fetchBookingDetails() {
             bookingFound2.classList.remove('visible');
             noBooking.classList.add('visible');
             document.getElementById('no-booking').textContent = '目前沒有任何待預定的行程';
+            return null;
         }
         
     } catch (error) {
         console.error('收到response前有錯誤:', error);
+        return null;
     }
 }
 
